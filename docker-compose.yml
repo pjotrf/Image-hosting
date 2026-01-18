@@ -1,0 +1,45 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=image_hosting
+      - DB_USER=image_user
+      - DB_PASSWORD=image_pass
+      - DB_ENABLED=1
+    volumes:
+      - images:/images
+      - logs:/logs
+      - backups:/backups
+    depends_on:
+      - postgres
+
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - images:/images:ro
+    depends_on:
+      - app
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=image_hosting
+      - POSTGRES_USER=image_user
+      - POSTGRES_PASSWORD=image_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  images:
+  logs:
+  backups:
+  postgres_data:
